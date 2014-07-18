@@ -37,10 +37,30 @@ describe "AuthenticationPages" do
     end
     
     describe "authorization" do
+      let(:user) { FactoryGirl.create(:user) }
     
-      describe "for non-signed-in users" do
-        let(:user) { FactoryGirl.create(:user) }
+      describe "for signed in users" do
+        before { sign_in user, no_capybara: true}
+       
+        describe "trying to create new user" do
+          before { get new_user_path }
+          specify { expect(response).to redirect_to(root_path) }
+        end
         
+        describe "trying to create new user" do
+          before { post users_path}
+          specify { expect(response).to redirect_to(root_path) }
+        end
+      end
+      
+      
+      describe "for non-signed-in users" do
+        
+        describe "profile and settings links not present" do
+          it { should_not have_link('Profile',     href: user_path(user)) }
+          it { should_not have_link('Settings',    href: edit_user_path(user)) }
+        end
+          
         describe "when attempting to visit a protected page" do
           before do
             visit edit_user_path(user)
@@ -73,6 +93,7 @@ describe "AuthenticationPages" do
             before { patch user_path(user) }
             specify { expect(response).to redirect_to(signin_path) }
           end
+          
         end
         
         describe "as non-admin user" do
